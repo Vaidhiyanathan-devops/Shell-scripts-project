@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Prompt for the GitHub token
+read -p "Enter your GitHub Personal Access Token: " GITHUB_TOKEN
+
+# Prompt for the repository owner
+read -p "Enter the GitHub repository owner (username/organization): " REPO_OWNER
+
+# Prompt for the repository name
+read -p "Enter the repository name: " REPO_NAME
+
+# API URL to get repository collaborators
+API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/collaborators"
+
+# Fetch the list of users with permissions
+echo "Fetching collaborators for repository '$REPO_OWNER/$REPO_NAME'..."
+
+# API call to fetch collaborators
+RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "$API_URL")
+
+# Check if the request was successful
+if [[ $? -eq 0 ]]; then
+    # If successful, display only the users with admin permissions
+    echo "Collaborators with admin permissions:"
+    echo "$RESPONSE" | jq '.[] | select(.permissions.admin == true) | {login, permissions}'
+else
+    echo "Failed to fetch collaborators. Please check your credentials or repository details."
+fi
+
+
